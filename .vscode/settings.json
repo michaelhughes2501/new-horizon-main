@@ -1,0 +1,12 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "typescript.tsdk": "NewHorizon/node_modules/typescript/lib",
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.expo": true,
+    "**/package-lock.json": true
+  }
+}

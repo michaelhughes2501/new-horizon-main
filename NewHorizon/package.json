@@ -1,0 +1,35 @@
+{
+  "name": "newhorizon",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "security:audit": "npm audit --audit-level=moderate",
+    "doctor": "npx expo-doctor"
+  },
+  "dependencies": {
+    "@react-navigation/bottom-tabs": "^7.16.1",
+    "@react-navigation/native": "^7.2.2",
+    "@supabase/supabase-js": "^2.106.1",
+    "expo": "~56.0.3",
+    "expo-constants": "~56.0.14",
+    "expo-device": "~56.0.4",
+    "expo-notifications": "~56.0.12",
+    "expo-secure-store": "~56.0.4",
+    "expo-status-bar": "~56.0.4",
+    "react": "19.2.6",
+    "react-native": "0.85.3",
+    "react-native-gesture-handler": "~2.31.2",
+    "react-native-safe-area-context": "~5.8.0",
+    "react-native-screens": "~4.25.2",
+    "react-native-url-polyfill": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.15",
+    "typescript": "~6.0.3"
+  },
+  "private": true
+}
