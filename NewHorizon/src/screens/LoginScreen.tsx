@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,37 +10,57 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from 'react-native'
-import { supabase } from '../../lib/supabase'
+} from "react-native";
+import { useAuth } from "../context/AuthContext";
 
 type Props = {
-  onNavigateToRegister: () => void
-}
+  onNavigateToRegister: () => void;
+};
 
 export default function LoginScreen({ onNavigateToRegister }: Props) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const { signIn } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
     if (!email || !password) {
-      Alert.alert('Missing fields', 'Please enter your email and password.')
-      return
+      Alert.alert("Missing fields", "Please enter your email and password.");
+      return;
     }
-    setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setLoading(false)
-    if (error) {
-      Alert.alert('Login failed', error.message)
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        },
+      );
+      const result = await response.json();
+
+      if (response.ok) {
+        await signIn(result.token, result.user);
+      } else {
+        Alert.alert("Login failed", result.message || "Invalid credentials");
+      }
+    } catch (error: any) {
+      Alert.alert("Error", "Connection to server failed");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
     <KeyboardAvoidingView
       style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.title}>New Horizon</Text>
         <Text style={styles.subtitle}>Reconnect. Rebuild. Rise.</Text>
 
@@ -62,7 +82,11 @@ export default function LoginScreen({ onNavigateToRegister }: Props) {
           secureTextEntry
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleLogin}
+          disabled={loading}
+        >
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
@@ -75,50 +99,50 @@ export default function LoginScreen({ onNavigateToRegister }: Props) {
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#1a1a2e' },
+  flex: { flex: 1, backgroundColor: "#1a1a2e" },
   container: {
     flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 24,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: "#1a1a2e",
   },
   title: {
     fontSize: 36,
-    fontWeight: '800',
-    color: '#fff',
+    fontWeight: "800",
+    color: "#fff",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#aab4d4',
+    color: "#aab4d4",
     marginBottom: 40,
     letterSpacing: 1,
   },
   input: {
-    width: '100%',
-    backgroundColor: '#16213e',
+    width: "100%",
+    backgroundColor: "#16213e",
     borderRadius: 10,
     padding: 14,
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#0f3460',
+    borderColor: "#0f3460",
   },
   button: {
-    width: '100%',
-    backgroundColor: '#e94560',
+    width: "100%",
+    backgroundColor: "#e94560",
     borderRadius: 10,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
   },
-  buttonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  buttonText: { color: "#fff", fontSize: 17, fontWeight: "700" },
   linkRow: { marginTop: 20 },
-  link: { color: '#aab4d4', fontSize: 14 },
-})
+  link: { color: "#aab4d4", fontSize: 14 },
+});

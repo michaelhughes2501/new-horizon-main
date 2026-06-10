@@ -1,50 +1,76 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import { Session, User } from '@supabase/supabase-js'
-import { supabase } from '../../lib/supabase'
+import React, { createContext, useContext, useEffect, useState } from "react";
+import * as SecureStore from "expo-secure-store";
+
+type User = {
+  id: string;
+  email: string;
+  username?: string;
+};
 
 type AuthContextType = {
-  user: User | null
-  session: Session | null
-  loading: boolean
-  signOut: () => Promise<void>
-}
+  user: User | null;
+  token: string | null;
+  loading: boolean;
+  signIn: (token: string, user: User) => Promise<void>;
+  signOut: () => Promise<void>;
+};
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  session: null,
+  token: null,
   loading: true,
+  signIn: async () => {},
   signOut: async () => {},
-})
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setLoading(false)
-    })
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
-    return () => subscription.unsubscribe()
-  }, [])
+    async function loadStorageData() {
+      try {
+        const storedToken = await SecureStore.getItemAsync("auth_token");
+        const storedUser = await SecureStore.getItemAsync("auth_user");
+        if (storedToken && storedUser) {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (e) {
+        console.error("Failed to load auth state", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadStorageData();
+  }, []);
 
   return (
     <AuthContext.Provider
       value={{
-        user: session?.user ?? null,
-        session,
+        user,
+        token,
         loading,
+        signIn: async (newToken, newUser) => {
+          await SecureStore.setItemAsync("auth_token", newToken);
+          await SecureStore.setItemAsync("auth_user", JSON.stringify(newUser));
+          setToken(newToken);
+          setUser(newUser);
+        },
         signOut: async () => {
-          await supabase.auth.signOut()
+          await SecureStore.deleteItemAsync("auth_token");
+          await SecureStore.deleteItemAsync("auth_user");
+          setToken(null);
+          setUser(null);
         },
       }}
     >
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
-export const useAuth = () => useContext(AuthContext)
+export const useAuth = () => useContext(AuthContext);
