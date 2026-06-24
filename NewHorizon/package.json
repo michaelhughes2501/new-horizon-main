@@ -13,6 +13,15 @@
   "dependencies": {
     "@react-navigation/bottom-tabs": "^7.16.1",
     "@react-navigation/native": "^7.2.2",
+    "@supabase/supabase-js": "^2.106.1",
+    "expo": "~56.0.3",
+    "expo-constants": "~56.0.14",
+    "expo-device": "~56.0.4",
+    "expo-notifications": "~56.0.12",
+    "expo-secure-store": "~56.0.4",
+    "expo-status-bar": "~56.0.4",
+    "react": "19.2.7",
+    "react-native": "0.85.3",
     "expo": "~54.0.33",
     "expo-constants": "~2.0.2",
     "expo-device": "~7.0.2",
@@ -27,6 +36,8 @@
     "react-native-url-polyfill": "^3.0.0"
   },
   "devDependencies": {
+    "@types/react": "~19.2.17",
+    "typescript": "~6.0.3"
     "@types/react": "~19.0.0",
     "typescript": "~5.9.0"
   },
