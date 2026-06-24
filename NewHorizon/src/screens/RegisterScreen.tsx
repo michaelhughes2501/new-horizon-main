@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,53 +10,61 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from 'react-native'
-import { supabase } from '../../lib/supabase'
+} from "react-native";
 
 type Props = {
-  onNavigateToLogin: () => void
-}
+  onNavigateToLogin: () => void;
+};
 
 export default function RegisterScreen({ onNavigateToLogin }: Props) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleRegister() {
     if (!email || !password || !username) {
-      Alert.alert('Missing fields', 'Please fill in all fields.')
-      return
+      Alert.alert("Missing fields", "Please fill in all fields.");
+      return;
     }
     if (password.length < 6) {
-      Alert.alert('Weak password', 'Password must be at least 6 characters.')
-      return
+      Alert.alert("Weak password", "Password must be at least 6 characters.");
+      return;
     }
-    setLoading(true)
-    const { data, error } = await supabase.auth.signUp({ email, password })
-    if (error) {
-      setLoading(false)
-      Alert.alert('Registration failed', error.message)
-      return
-    }
-    if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({ id: data.user.id, username, email })
-      if (profileError) {
-        console.warn('Profile insert error:', profileError.message)
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/auth/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, username }),
+        },
+      );
+      const result = await response.json();
+
+      if (response.ok) {
+        Alert.alert("Success", "Account created! Please sign in.");
+        onNavigateToLogin();
+      } else {
+        Alert.alert("Registration failed", result.message || "Try again later");
       }
+    } catch (error: any) {
+      Alert.alert("Error", "Connection to server failed");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false)
-    Alert.alert('Success', 'Account created! Please check your email to confirm your account.')
   }
 
   return (
     <KeyboardAvoidingView
       style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.title}>New Horizon</Text>
         <Text style={styles.subtitle}>Create Your Account</Text>
 
@@ -86,7 +94,11 @@ export default function RegisterScreen({ onNavigateToLogin }: Props) {
           secureTextEntry
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleRegister}
+          disabled={loading}
+        >
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
@@ -99,50 +111,50 @@ export default function RegisterScreen({ onNavigateToLogin }: Props) {
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#1a1a2e' },
+  flex: { flex: 1, backgroundColor: "#1a1a2e" },
   container: {
     flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 24,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: "#1a1a2e",
   },
   title: {
     fontSize: 36,
-    fontWeight: '800',
-    color: '#fff',
+    fontWeight: "800",
+    color: "#fff",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#aab4d4',
+    color: "#aab4d4",
     marginBottom: 40,
     letterSpacing: 1,
   },
   input: {
-    width: '100%',
-    backgroundColor: '#16213e',
+    width: "100%",
+    backgroundColor: "#16213e",
     borderRadius: 10,
     padding: 14,
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#0f3460',
+    borderColor: "#0f3460",
   },
   button: {
-    width: '100%',
-    backgroundColor: '#e94560',
+    width: "100%",
+    backgroundColor: "#e94560",
     borderRadius: 10,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
   },
-  buttonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  buttonText: { color: "#fff", fontSize: 17, fontWeight: "700" },
   linkRow: { marginTop: 20 },
-  link: { color: '#aab4d4', fontSize: 14 },
-})
+  link: { color: "#aab4d4", fontSize: 14 },
+});

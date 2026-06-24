@@ -1,0 +1,21 @@
+version: '3.9'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: newhorizon-expo-dev
+    ports:
+      - "8081:8081"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./src:/app/src
+      - ./assets:/app/assets
+      - /app/node_modules
+    networks:
+      - newhorizon
+
+networks:
+  newhorizon:
+    driver: bridge
