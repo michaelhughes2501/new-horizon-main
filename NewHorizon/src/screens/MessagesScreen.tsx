@@ -39,7 +39,12 @@ export default function MessagesScreen() {
     if (error) {
       setError(error.message)
     } else {
-      setMessages(data ?? [])
+      const normalized = (data ?? []).map((m: any) => ({
+        ...m,
+        sender: Array.isArray(m.sender) ? m.sender[0] ?? null : m.sender ?? null,
+        receiver: Array.isArray(m.receiver) ? m.receiver[0] ?? null : m.receiver ?? null,
+      }))
+      setMessages(normalized)
       setError(null)
     }
   }
