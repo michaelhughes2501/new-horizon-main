@@ -1,70 +1,82 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import * as SecureStore from "expo-secure-store";
-
-type User = {
-  id: string;
-  email: string;
-  username?: string;
-};
+/**
+ * AuthContext — thin wrapper around Supabase auth.
+ * Session state is persisted to the global Zustand store (AppContext) so
+ * every screen can read it without subscribing to context re-renders.
+ */
+import React, { createContext, useContext, useEffect } from "react";
+import { supabase } from "../../lib/supabase";
+import {
+  signIn as authSignIn,
+  signUp as authSignUp,
+  signOut as authSignOut,
+  getProfile,
+} from "../services/auth";
+import { useAppStore } from "./AppContext";
 
 type AuthContextType = {
-  user: User | null;
-  token: string | null;
-  loading: boolean;
-  signIn: (token: string, user: User) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, username: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
 const AuthContext = createContext<AuthContextType>({
-  user: null,
-  token: null,
-  loading: true,
   signIn: async () => {},
+  signUp: async () => {},
   signOut: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { setUser, setProfile, setAuthLoading, reset } = useAppStore();
 
+  // ── Restore session and subscribe to auth changes on mount
   useEffect(() => {
-    async function loadStorageData() {
-      try {
-        const storedToken = await SecureStore.getItemAsync("auth_token");
-        const storedUser = await SecureStore.getItemAsync("auth_user");
-        if (storedToken && storedUser) {
-          setToken(storedToken);
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (e) {
-        console.error("Failed to load auth state", e);
-      } finally {
-        setLoading(false);
+    setAuthLoading(true);
+
+    // Bootstrap from existing session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const user = session?.user ?? null;
+      setUser(user);
+      if (user) {
+        const profile = await getProfile(user.id);
+        setProfile(profile);
       }
-    }
-    loadStorageData();
+      setAuthLoading(false);
+    });
+
+    // Live subscription
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const user = session?.user ?? null;
+      setUser(user);
+      if (user) {
+        const profile = await getProfile(user.id);
+        setProfile(profile);
+      } else {
+        setProfile(null);
+      }
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
     <AuthContext.Provider
       value={{
-        user,
-        token,
-        loading,
-        signIn: async (newToken, newUser) => {
-          await SecureStore.setItemAsync("auth_token", newToken);
-          await SecureStore.setItemAsync("auth_user", JSON.stringify(newUser));
-          setToken(newToken);
-          setUser(newUser);
+        signIn: async (email, password) => {
+          const user = await authSignIn(email, password);
+          setUser(user);
+          const profile = await getProfile(user.id);
+          setProfile(profile);
+        },
+        signUp: async (email, password, username) => {
+          const user = await authSignUp(email, password, username);
+          setUser(user);
         },
         signOut: async () => {
-          await SecureStore.deleteItemAsync("auth_token");
-          await SecureStore.deleteItemAsync("auth_user");
-          setToken(null);
-          setUser(null);
+          await authSignOut();
+          reset();
         },
       }}
     >
