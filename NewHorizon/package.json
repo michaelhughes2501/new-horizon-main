@@ -11,6 +11,10 @@
     "doctor": "npx expo-doctor"
   },
   "dependencies": {
+    "@expo/cli": "^57.0.6",
+    "@expo/config": "^56.0.9",
+    "@expo/config-plugins": "^56.0.9",
+    "@react-navigation/bottom-tabs": "^7.18.8",
     "@expo/cli": "^57.0.9",
     "@expo/config": "^57.0.5",
     "@expo/config-plugins": "^57.0.5",
