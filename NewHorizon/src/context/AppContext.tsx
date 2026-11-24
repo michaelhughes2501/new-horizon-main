@@ -45,6 +45,9 @@ export interface AssistantState {
 }
 
 // ─── Store shape ─────────────────────────────────────────────────────────────
+/** The active theme palette, for typing style factories. */
+export type ThemeColors = (typeof THEME)[ThemeMode];
+
 export interface AppState {
   // Auth
   user: User | null;

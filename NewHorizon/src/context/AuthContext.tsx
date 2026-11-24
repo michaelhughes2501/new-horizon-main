@@ -3,7 +3,8 @@
  * Session state is persisted to the global Zustand store (AppContext) so
  * every screen can read it without subscribing to context re-renders.
  */
-import React, { createContext, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabase";
 import {
   signIn as authSignIn,
@@ -14,19 +15,26 @@ import {
 import { useAppStore } from "./AppContext";
 
 type AuthContextType = {
+  /** Signed-in Supabase user, or null. */
+  user: User | null;
+  /** Current access token for calling this app's API, or null. */
+  token: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, username: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
+  user: null,
+  token: null,
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { setUser, setProfile, setAuthLoading, reset } = useAppStore();
+  const { user, setUser, setProfile, setAuthLoading, reset } = useAppStore();
+  const [token, setToken] = useState<string | null>(null);
 
   // ── Restore session and subscribe to auth changes on mount
   useEffect(() => {
@@ -34,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Bootstrap from existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setToken(session?.access_token ?? null);
       const user = session?.user ?? null;
       setUser(user);
       if (user) {
@@ -47,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setToken(session?.access_token ?? null);
       const user = session?.user ?? null;
       setUser(user);
       if (user) {
@@ -64,6 +74,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
+        user,
+        token,
         signIn: async (email, password) => {
           const user = await authSignIn(email, password);
           setUser(user);
