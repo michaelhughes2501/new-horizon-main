@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
-import { useAppStore } from "../context/AppContext";
+import { useAppStore, type ThemeColors } from "../context/AppContext";
 import {
   getMatches,
   getDiscoverProfiles,
@@ -167,7 +167,7 @@ export default function ConnectScreen() {
   );
 }
 
-function makeStyles(colors: ReturnType<typeof useAppStore>["colors"]) {
+function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     centered: { flex: 1, backgroundColor: colors.background, alignItems: "center", justifyContent: "center" },

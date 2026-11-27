@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Switch,
 } from "react-native";
-import { useAppStore } from "../context/AppContext";
+import { useAppStore, type ThemeColors } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 
 export default function SettingsScreen() {
@@ -92,7 +92,7 @@ export default function SettingsScreen() {
   );
 }
 
-function makeStyles(colors: ReturnType<typeof useAppStore>["colors"]) {
+function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     content: { padding: 20, paddingBottom: 60 },

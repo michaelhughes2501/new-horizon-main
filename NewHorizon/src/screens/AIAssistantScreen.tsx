@@ -10,7 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
-import { useAppStore } from "../context/AppContext";
+import { useAppStore, type ThemeColors } from "../context/AppContext";
 import {
   continueConversation,
   detectTopic,
@@ -146,7 +146,7 @@ export default function AIAssistantScreen() {
   );
 }
 
-function makeStyles(colors: ReturnType<typeof useAppStore>["colors"]) {
+function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     pills: { flexDirection: "row", flexWrap: "wrap", padding: 12, gap: 8, borderBottomWidth: 1, borderColor: colors.border },
